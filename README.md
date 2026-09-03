@@ -1,6 +1,6 @@
 # Farmayopin - Taller de Aplicaciones Moviles
 
-Aplicacion movil para gestionar articulos de farmacia. Desarrollada para el laboratorio 2026, UTEC - Maldonado.
+Aplicacion movil para gestionar articulos de farmacia.
 
 ## Arquitectura
 
