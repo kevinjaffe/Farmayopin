@@ -43,7 +43,7 @@ La base de datos NO se crea automaticamente. En phpMyAdmin:
 1. Abrir http://localhost:8081 y loguearse
 2. Crear la base `farmayopin_db`
 3. Entrar a la base y pegar el contenido de
-   `backend/database/migrations/001_create_tables.sql` en la pestana SQL
+   `backend/database/migrations/farmayopin_db.sql` en la pestana SQL
 
 ## Correr la app Flutter
 
