@@ -1,0 +1,68 @@
+# =====================
+# FLUTTER / DART
+# =====================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+**/build/
+*.iml
+flutter_app/.idea/
+flutter_app/android/.gradle/
+flutter_app/android/local.properties
+flutter_app/ios/Pods/
+flutter_app/ios/.symlinks/
+flutter_app/ios/Flutter/Flutter.framework
+flutter_app/ios/Flutter/Generated.xcconfig
+
+# =====================
+# PHP / COMPOSER
+# =====================
+/vendor/
+composer.phar
+
+# =====================
+# DOCKER (datos locales)
+# =====================
+docker/mysql/data/
+mysql_data/
+
+# =====================
+# ENTORNO / SECRETOS
+# =====================
+.env
+.env.local
+.env.production
+backend/.env
+
+# =====================
+# IDE / EDITOR
+# =====================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# =====================
+# SISTEMA OPERATIVO
+# =====================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# =====================
+# LOGS
+# =====================
+*.log
+storage/logs/
+
+# =====================
+# COBERTURA / TEST
+# =====================
+coverage/
+*.lcov
+
