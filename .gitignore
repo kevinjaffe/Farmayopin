@@ -20,6 +20,7 @@ flutter_app/ios/Flutter/Generated.xcconfig
 # PHP / COMPOSER
 # =====================
 /vendor/
+backend/vendor/
 composer.phar
 
 # =====================
@@ -31,7 +32,6 @@ mysql_data/
 # =====================
 # ENTORNO / SECRETOS
 # =====================
-.env
 .env.local
 .env.production
 backend/.env
@@ -40,8 +40,7 @@ backend/.env
 # IDE / EDITOR
 # =====================
 .vscode/
-.idea/
-*.swp
+.idea/*.swp
 *.swo
 *~
 .project

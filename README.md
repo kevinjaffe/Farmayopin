@@ -28,8 +28,8 @@ DispositivosMoviles/
 
 ## Puesta en marcha del backend
 
+
 ```bash
-cp .env.example .env      # editar credenciales si es necesario
 docker compose up -d --build
 ```
 
@@ -52,6 +52,23 @@ cd flutter_app
 flutter pub get
 flutter run -d chrome      # navegador
 flutter run -d <dispositivo>  # celular Android (requiere Android SDK)
+```
+
+### Configurar la URL del backend
+
+Si el backend corre en otra PC o lo ejecutas desde un dispositivo físico, pasa la IP del servidor:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://<IP_del_servidor>:8080
+```
+
+- **Misma PC**: no hace falta pasar nada, usa `localhost:8080` por defecto.
+- **Otra PC / celular físico**: usa la IP local del servidor (ej: `http://192.168.1.100:8080`).
+
+Para builds de producción:
+```bash
+flutter build apk --dart-define=API_BASE_URL=http://<IP_del_servidor>:8080
+flutter build web --dart-define=API_BASE_URL=http://<IP_del_servidor>:8080
 ```
 
 ## API endpoints principales
