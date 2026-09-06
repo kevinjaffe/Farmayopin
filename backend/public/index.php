@@ -36,6 +36,11 @@ if ($path === '/api/auth/register' && $method === 'POST') {
     exit;
 }
 
+if ($path === '/api/auth/login' && $method === 'POST') {
+    (new AuthController($pdo))->login();
+    exit;
+}
+
 // Endpoint de prueba
 header('Content-Type: application/json');
 echo json_encode(['message' => 'Farmayopin API funcionando. Empiecen a programar!']);

@@ -63,6 +63,60 @@ class AuthController
         ], 201);
     }
 
+        public function login(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!is_array($data)) {
+            $this->json(['message' => 'Body inválido'], 400);
+            return;
+        }
+
+        $email    = trim($data['email'] ?? '');
+        $password = $data['password'] ?? '';
+
+        if ($email === '' || $password === '') {
+            $this->json(['message' => 'Ingresa tu correo y contraseña'], 400);
+            return;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT id, nombre, email, password, rol FROM usuarios WHERE email = ?'
+        );
+        $stmt->execute([$email]);
+        $usuario = $stmt->fetch();
+
+        if (!$usuario || !password_verify($password, $usuario['password'])) {
+            $this->json(['message' => 'Credenciales inválidas'], 401);
+            return;
+        }
+
+        $token = $this->generarToken((int) $usuario['id'], $usuario['rol']);
+
+        $this->json([
+            'message' => 'Sesión iniciada',
+            'token'   => $token,
+            'usuario' => [
+                'id'     => (int) $usuario['id'],
+                'nombre' => $usuario['nombre'],
+                'email'  => $usuario['email'],
+                'rol'    => $usuario['rol'],
+            ],
+        ]);
+    }
+
+    private function generarToken(int $userId, string $rol): string
+    {
+        $secret = $_ENV['JWT_SECRET'] ?? 'change_this_secret_key';
+        $payload = base64_encode(json_encode([
+            'id'  => $userId,
+            'rol' => $rol,
+            'exp' => time() + 3600 * 8,
+        ]));
+        $firma = hash_hmac('sha256', $payload, $secret);
+        return $payload . '.' . $firma;
+    }
+
     private function json(array $data, int $status = 200): void
     {
         http_response_code($status);

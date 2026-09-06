@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
+import '../core/network/api_client.dart';
+import '../core/services/session_manager.dart';
+import 'home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  final ApiClient _api = ApiClient();
+  bool _cargando = false;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
 
@@ -23,6 +30,56 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+    Future<void> _iniciarSesion() async {
+    if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
+      _mostrarError('Ingresa tu correo y contraseña');
+      return;
+    }
+
+    setState(() => _cargando = true);
+    try {
+      final res = await _api.post(
+        '/api/auth/login',
+        body: jsonEncode({
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text,
+        }),
+      );
+
+      final data = res as Map<String, dynamic>;
+      final token = data['token'] as String;
+      final usuario = data['usuario'] as Map<String, dynamic>;
+
+      await SessionManager.guardar(token, usuario);
+      _api.setToken(token);
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen(usuario: usuario)),
+      );
+    } catch (e) {
+      if (mounted) _mostrarError(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  void _mostrarError(String mensaje) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(mensaje),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -155,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _cargando ? null : _iniciarSesion,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryPurple,
                       foregroundColor: Colors.white,
@@ -164,8 +221,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'Iniciar Sesión',
+                    child: Text(
+                      _cargando ? 'Iniciando...' : 'Iniciar Sesión',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
