@@ -4,7 +4,7 @@ import 'package:flutter_app/main.dart';
 
 void main() {
   testWidgets('Farmayopin app boots', (WidgetTester tester) async {
-    await tester.pumpWidget(const FarmayopinApp());
+    await tester.pumpWidget(const MyApp());
     expect(find.text('Bienvenido a Farmayopin'), findsOneWidget);
   });
 }
