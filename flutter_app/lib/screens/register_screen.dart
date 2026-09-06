@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import '../core/network/api_client.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,7 +14,6 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
@@ -21,11 +23,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
 
+  final ApiClient _api = ApiClient();
+  bool _cargando = false;
+
   @override
   void dispose() {
     _fullNameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -71,6 +75,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
         borderSide: const BorderSide(color: primaryPurple, width: 1.5),
       ),
       suffixIcon: suffixIcon,
+    );
+  }
+
+  Future<void> _registrar() async {
+    if (!_acceptTerms) {
+      _mostrarError('Debes aceptar los términos y condiciones');
+      return;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _mostrarError('Las contraseñas no coinciden');
+      return;
+    }
+
+    setState(() => _cargando = true);
+    try {
+      await _api.post(
+        '/api/auth/register',
+        body: jsonEncode({
+          'nombre': _fullNameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text,
+        }),
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Registro exitoso'),
+          content: const Text('Tu cuenta fue creada correctamente.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) _mostrarError('$e');
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  void _mostrarError(String mensaje) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(mensaje),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -129,15 +191,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: _inputDecoration(hintText: 'pablo@correo.com.uy'),
-              ),
-
-              const SizedBox(height: 16),
-
-              _buildFieldLabel('Teléfono / Celular'),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: _inputDecoration(hintText: '099 123 456'),
               ),
 
               const SizedBox(height: 16),
@@ -248,7 +301,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _cargando ? null : _registrar,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryPurple,
                     foregroundColor: Colors.white,
@@ -257,9 +310,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Crear Cuenta',
-                    style: TextStyle(
+                  child: Text(
+                    _cargando ? 'Registrando...' : 'Crear Cuenta',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Controllers\AuthController;
 use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -26,6 +27,15 @@ $pdo = new PDO(
     ]
 );
 
-// Endpoint de prueba para verificar que la API responde
+// Ruteo
+$method = $_SERVER['REQUEST_METHOD'];
+$path = '/' . trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '', '/');
+
+if ($path === '/api/auth/register' && $method === 'POST') {
+    (new AuthController($pdo))->register();
+    exit;
+}
+
+// Endpoint de prueba
 header('Content-Type: application/json');
 echo json_encode(['message' => 'Farmayopin API funcionando. Empiecen a programar!']);
