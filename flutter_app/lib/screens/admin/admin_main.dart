@@ -63,7 +63,7 @@ class _AdminMainState extends State<AdminMain> {
                   fit: StackFit.expand,
                   children: [
                     ...previousChildren,
-                    if (currentChild != null) currentChild,
+                    ?currentChild,
                   ],
                 ),
                 transitionBuilder: (child, animation) {

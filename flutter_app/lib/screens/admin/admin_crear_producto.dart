@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/services/session_manager.dart';
@@ -19,7 +21,11 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
   final TextEditingController _stockController = TextEditingController();
 
   final ApiClient _api = ApiClient();
+  final ImagePicker _picker = ImagePicker();
   bool _cargando = false;
+
+  Uint8List? _bytesImagen;
+  String _mimeImagen = 'image/jpeg';
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
   static const Color textDark = Color(0xFF0F172A);
@@ -36,6 +42,26 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
     super.dispose();
   }
 
+  Future<void> _subirFoto() async {
+    final xfile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      imageQuality: 80,
+    );
+    if (xfile == null) return;
+
+    final bytes = await xfile.readAsBytes();
+    final ext = xfile.name.toLowerCase().split('.').last;
+    setState(() {
+      _bytesImagen = bytes;
+      _mimeImagen = switch (ext) {
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        _ => 'image/jpeg',
+      };
+    });
+  }
+
   Future<void> _guardarProducto() async {
     if (_nombreController.text.trim().isEmpty) {
       _mostrarAviso('Ingresa el nombre del producto');
@@ -48,24 +74,33 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
       return;
     }
 
+    if (_bytesImagen != null && _bytesImagen!.length > 5 * 1024 * 1024) {
+      _mostrarAviso('La imagen no puede superar los 5MB');
+      return;
+    }
+
     setState(() => _cargando = true);
     try {
       final token = await SessionManager.token();
       if (token != null) _api.setToken(token);
 
-      await _api.post(
-        '/api/productos',
-        body: jsonEncode({
-          'nombre': _nombreController.text.trim(),
-          'descripcion': _descripcionController.text.trim(),
-          'precio': precio,
-          'stock': int.tryParse(_stockController.text.trim()) ?? 0,
-        }),
-      );
+      final datos = <String, dynamic>{
+        'nombre': _nombreController.text.trim(),
+        'descripcion': _descripcionController.text.trim(),
+        'precio': precio,
+        'stock': int.tryParse(_stockController.text.trim()) ?? 0,
+        if (_bytesImagen != null)
+          'foto': 'data:$_mimeImagen;base64,${base64Encode(_bytesImagen!)}',
+      };
+
+      await _api.post('/api/productos', body: jsonEncode(datos));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Producto "${_nombreController.text.trim()}" creado')),
+        SnackBar(
+          content:
+              Text('Producto "${_nombreController.text.trim()}" creado'),
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
@@ -79,10 +114,6 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(mensaje)),
     );
-  }
-
-  void _subirFoto() {
-    _mostrarAviso('Subida de fotos próximamente');
   }
 
   @override
@@ -244,28 +275,64 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             height: 150,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: primaryPurple, width: 1.5),
             ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: _bytesImagen == null ? _vistaElegir() : _vistaPrevia(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _vistaElegir() {
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.photo_camera, color: primaryPurple, size: 32),
+        SizedBox(height: 6),
+        Text(
+          'Subir o tomar foto',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: primaryPurple,
+          ),
+        ),
+        SizedBox(height: 2),
+        Text(
+          'Solo formatos JPG, PNG de hasta 5MB',
+          style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+        ),
+      ],
+    );
+  }
+
+  Widget _vistaPrevia() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.memory(_bytesImagen!, fit: BoxFit.contain),
+        Positioned(
+          right: 8,
+          bottom: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.photo_camera, color: primaryPurple, size: 32),
-                SizedBox(height: 6),
+                Icon(Icons.camera_alt, size: 14, color: Colors.white),
+                SizedBox(width: 4),
                 Text(
-                  'Subir o tomar foto',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: primaryPurple,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Solo formatos JPG, PNG de hasta 5MB',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  'Cambiar',
+                  style: TextStyle(color: Colors.white, fontSize: 11),
                 ),
               ],
             ),

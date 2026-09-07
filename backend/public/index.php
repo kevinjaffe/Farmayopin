@@ -41,6 +41,12 @@ if ($path === '/api/auth/login' && $method === 'POST') {
     (new AuthController($pdo))->login();
     exit;
 }
+
+if ($method === 'GET' && preg_match('#^/api/productos/foto/(.+)$#', $path, $m)) {
+    (new ProductController($pdo))->foto($m[1]);
+    exit;
+}
+
 if ($path === '/api/productos' && $method === 'GET') {
     (new ProductController($pdo))->index();
     exit;

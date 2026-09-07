@@ -42,7 +42,7 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "if [ ! -d vendor ] || [ -z \"$(ls -A vendor 2>/dev/null)\" ]; then composer install --no-interaction --prefer-dist; fi && apache2-foreground"
+      sh -c "if [ ! -d vendor ] || [ -z \"$(ls -A vendor 2>/dev/null)\" ]; then composer install --no-interaction --prefer-dist; fi && (mkdir -p /var/www/html/src/Imagenes && chown -R www-data:www-data /var/www/html/src/Imagenes || true) && apache2-foreground"
     networks:
       - app-network
 

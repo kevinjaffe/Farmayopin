@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
 import '../../core/services/session_manager.dart';
 import 'admin_crear_producto.dart';
@@ -146,7 +147,7 @@ class _AdminProductosState extends State<AdminProductos> {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       itemCount: productos.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
       itemBuilder: (_, i) => _ProductoCard(producto: productos[i]),
     );
   }
@@ -261,19 +262,7 @@ class _ProductoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.medication,
-              color: Color(0xFFCBD5E1),
-              size: 32,
-            ),
-          ),
+          _imagen(),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -332,6 +321,35 @@ class _ProductoCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _imagen() {
+    final foto = producto['foto'];
+    if (foto is String && foto.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          '${ApiConstants.baseUrl}/api/productos/foto/$foto',
+          width: 64,
+          height: 64,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _iconoPlaceholder(),
+        ),
+      );
+    }
+    return _iconoPlaceholder();
+  }
+
+  Widget _iconoPlaceholder() {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Icon(Icons.medication, color: Color(0xFFCBD5E1), size: 32),
     );
   }
 }
