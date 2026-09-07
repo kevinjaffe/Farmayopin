@@ -81,7 +81,6 @@ class _AdminProductoDetalleState extends State<AdminProductoDetalle> {
                   children: [
                     _buildImagen(),
                     const SizedBox(height: 16),
-                    _stockBadge(),
                     const SizedBox(height: 8),
                     Text(
                       _nombre,
@@ -212,23 +211,7 @@ class _AdminProductoDetalleState extends State<AdminProductoDetalle> {
     );
   }
 
-  Widget _stockBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3E8FF),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        'Stock: $_stock unidades',
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: primaryPurple,
-        ),
-      ),
-    );
-  }
+
 
   Widget _inventarioCard() {
     return Container(
@@ -253,10 +236,10 @@ class _AdminProductoDetalleState extends State<AdminProductoDetalle> {
           const SizedBox(height: 2),
           Text(
             '$_stock Unidades disponibles',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
-              color: textDark,
+              color: _stock == 0 ? const Color(0xFFDC2626) : textDark,
             ),
           ),
         ],

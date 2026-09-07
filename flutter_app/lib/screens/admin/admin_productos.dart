@@ -282,6 +282,8 @@ class _ProductoCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEditar;
 
+  int get _stock => (producto['stock'] ?? 0) as int;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -329,15 +331,19 @@ class _ProductoCard extends StatelessWidget {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF3E8FF),
+                          color: _stock == 0
+                              ? const Color(0xFFFEE2E2)
+                              : const Color(0xFFF3E8FF),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'Stock: ${producto['stock']} unidades',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF6A0DAD),
+                            color: _stock == 0
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF6A0DAD),
                           ),
                         ),
                       ),
