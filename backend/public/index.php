@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\AuthController;
 use Dotenv\Dotenv;
+use App\Controllers\ProductController;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -38,6 +39,15 @@ if ($path === '/api/auth/register' && $method === 'POST') {
 
 if ($path === '/api/auth/login' && $method === 'POST') {
     (new AuthController($pdo))->login();
+    exit;
+}
+if ($path === '/api/productos' && $method === 'GET') {
+    (new ProductController($pdo))->index();
+    exit;
+}
+
+if ($path === '/api/productos' && $method === 'POST') {
+    (new ProductController($pdo))->store();
     exit;
 }
 

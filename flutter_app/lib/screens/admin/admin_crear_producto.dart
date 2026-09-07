@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
+import '../../core/network/api_client.dart';
+import '../../core/services/session_manager.dart';
 
 class AdminCrearProducto extends StatefulWidget {
   const AdminCrearProducto({super.key});
@@ -13,6 +18,9 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
   final TextEditingController _precioController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
 
+  final ApiClient _api = ApiClient();
+  bool _cargando = false;
+
   static const Color primaryPurple = Color(0xFF6A0DAD);
   static const Color textDark = Color(0xFF0F172A);
   static const Color textLabel = Color(0xFF1E293B);
@@ -20,6 +28,7 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
 
   @override
   void dispose() {
+    _api.dispose();
     _nombreController.dispose();
     _descripcionController.dispose();
     _precioController.dispose();
@@ -27,28 +36,43 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
     super.dispose();
   }
 
-  void _guardarProducto() {
+  Future<void> _guardarProducto() async {
     if (_nombreController.text.trim().isEmpty) {
       _mostrarAviso('Ingresa el nombre del producto');
       return;
     }
-    if (_precioController.text.trim().isEmpty ||
-        double.tryParse(_precioController.text) == null) {
+
+    final precio = double.tryParse(_precioController.text.trim());
+    if (precio == null || precio < 0) {
       _mostrarAviso('Ingresa un precio válido');
       return;
     }
 
-    final producto = {
-      'nombre': _nombreController.text.trim(),
-      'descripcion': _descripcionController.text.trim(),
-      'precio': double.parse(_precioController.text),
-      'stock': int.tryParse(_stockController.text.trim()) ?? 0,
-    };
+    setState(() => _cargando = true);
+    try {
+      final token = await SessionManager.token();
+      if (token != null) _api.setToken(token);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Producto "${producto['nombre']}" guardado')),
-    );
-    Navigator.pop(context);
+      await _api.post(
+        '/api/productos',
+        body: jsonEncode({
+          'nombre': _nombreController.text.trim(),
+          'descripcion': _descripcionController.text.trim(),
+          'precio': precio,
+          'stock': int.tryParse(_stockController.text.trim()) ?? 0,
+        }),
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Producto "${_nombreController.text.trim()}" creado')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (mounted) _mostrarAviso(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
   }
 
   void _mostrarAviso(String mensaje) {
@@ -58,9 +82,7 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
   }
 
   void _subirFoto() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Subida de fotos próximamente')),
-    );
+    _mostrarAviso('Subida de fotos próximamente');
   }
 
   @override
@@ -185,7 +207,8 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
               const SizedBox(height: 8),
               TextField(
                 controller: _precioController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: _inputDecoration('650'),
               ),
             ],
@@ -260,7 +283,7 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
       child: SizedBox(
         height: 52,
         child: ElevatedButton(
-          onPressed: _guardarProducto,
+          onPressed: _cargando ? null : _guardarProducto,
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryPurple,
             foregroundColor: Colors.white,
@@ -270,9 +293,9 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
             ),
             shadowColor: primaryPurple.withValues(alpha: 0.2),
           ),
-          child: const Text(
-            'Guardar Producto',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          child: Text(
+            _cargando ? 'Guardando...' : 'Guardar Producto',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
         ),
       ),
