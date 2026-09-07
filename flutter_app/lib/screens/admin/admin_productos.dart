@@ -5,6 +5,7 @@ import '../../core/network/api_client.dart';
 import '../../core/services/session_manager.dart';
 import 'admin_crear_producto.dart';
 import 'admin_editar_producto.dart';
+import 'admin_producto_detalle.dart';
 
 class AdminProductos extends StatefulWidget {
   const AdminProductos({super.key, required this.usuario});
@@ -81,6 +82,16 @@ class _AdminProductosState extends State<AdminProductos> {
       context,
       MaterialPageRoute(
         builder: (_) => AdminEditarProducto(producto: producto),
+      ),
+    );
+    _cargarProductos();
+  }
+
+  Future<void> _abrirDetalle(Map<String, dynamic> producto) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdminProductoDetalle(producto: producto),
       ),
     );
     _cargarProductos();
@@ -163,6 +174,7 @@ class _AdminProductosState extends State<AdminProductos> {
         final p = productos[i];
         return _ProductoCard(
           producto: p,
+          onTap: () => _abrirDetalle(p),
           onEditar: () => _abrirEditar(p),
         );
       },
@@ -264,80 +276,93 @@ String _formatearPrecio(dynamic valor) {
 }
 
 class _ProductoCard extends StatelessWidget {
-  const _ProductoCard({required this.producto, this.onEditar});
+  const _ProductoCard({required this.producto, this.onTap, this.onEditar});
 
   final Map<String, dynamic> producto;
+  final VoidCallback? onTap;
   final VoidCallback? onEditar;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFEDF2F7)),
       ),
-      child: Row(
-        children: [
-          _imagen(),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
               children: [
-                Text(
-                  producto['nombre'] as String,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0F172A),
+                _imagen(),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        producto['nombre'] as String,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '\$${_formatearPrecio(producto['precio'])}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3E8FF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Stock: ${producto['stock']} unidades',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF6A0DAD),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '\$${_formatearPrecio(producto['precio'])}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 6),
+                const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3E8FF),
-                    borderRadius: BorderRadius.circular(8),
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF8FAFC),
+                    shape: BoxShape.circle,
                   ),
-                  child: Text(
-                    'Stock: ${producto['stock']} unidades',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF6A0DAD),
-                    ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.edit,
+                        color: Color(0xFF64748B), size: 18),
+                    onPressed: onEditar,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF8FAFC),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.edit, color: Color(0xFF64748B), size: 18),
-              onPressed: onEditar,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

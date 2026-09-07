@@ -43,8 +43,7 @@ class _AdminEditarProductoState extends State<AdminEditarProducto> {
   void initState() {
     super.initState();
     final p = widget.producto;
-    _nombreController =
-        TextEditingController(text: p['nombre'] as String);
+    _nombreController = TextEditingController(text: p['nombre'] as String);
     _descripcionController =
         TextEditingController(text: (p['descripcion'] ?? '') as String);
     _precioController =
@@ -116,13 +115,14 @@ class _AdminEditarProductoState extends State<AdminEditarProducto> {
           'foto': 'data:$_mimeImagen;base64,${base64Encode(_bytesImagenNueva!)}',
       };
 
-      await _api.put('/api/productos/$_productoId', body: jsonEncode(datos));
+      final res =
+          await _api.put('/api/productos/$_productoId', body: jsonEncode(datos));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Producto actualizado')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, res['producto']);
     } catch (e) {
       if (mounted) _mostrarAviso(e.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -167,7 +167,7 @@ class _AdminEditarProductoState extends State<AdminEditarProducto> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Producto eliminado')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, 'eliminado');
     } catch (e) {
       if (mounted) _mostrarAviso(e.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -362,8 +362,7 @@ class _AdminEditarProductoState extends State<AdminEditarProducto> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.photo_camera,
-                              size: 18, color: primaryPurple),
+                          Icon(Icons.photo_camera, size: 18, color: primaryPurple),
                           SizedBox(width: 4),
                           Text(
                             'Cambiar foto',
@@ -439,8 +438,7 @@ class _AdminEditarProductoState extends State<AdminEditarProducto> {
               ),
               child: Text(
                 _cargando ? 'Guardando...' : 'Guardar Cambios',
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
           ),
