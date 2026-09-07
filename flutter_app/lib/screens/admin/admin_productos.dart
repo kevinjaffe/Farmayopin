@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'admin_crear_producto.dart';
+
 class AdminProductos extends StatelessWidget {
   const AdminProductos({super.key, required this.usuario});
 
@@ -39,7 +41,7 @@ class AdminProductos extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -51,7 +53,8 @@ class AdminProductos extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                       itemCount: _productos.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 16),
-                      itemBuilder: (_, i) => _ProductoCard(producto: _productos[i]),
+                      itemBuilder: (_, i) =>
+                          _ProductoCard(producto: _productos[i]),
                     ),
                   ),
                 ],
@@ -63,7 +66,7 @@ class AdminProductos extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
       child: Row(
@@ -102,7 +105,12 @@ class AdminProductos extends StatelessWidget {
             child: IconButton(
               padding: EdgeInsets.zero,
               icon: const Icon(Icons.add, color: primaryPurple, size: 24),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminCrearProducto()),
+                );
+              },
             ),
           ),
         ],
