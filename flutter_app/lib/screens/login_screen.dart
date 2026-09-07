@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../core/network/api_client.dart';
 import '../core/services/session_manager.dart';
 import 'register_screen.dart';
-import 'admin/admin_screen.dart';
+import 'admin/admin_main.dart';
 import 'cliente/cliente_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-    Future<void> _iniciarSesion() async {
+  Future<void> _iniciarSesion() async {
     if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
       _mostrarError('Ingresa tu correo y contraseña');
       return;
@@ -55,10 +55,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _api.setToken(token);
 
       if (!mounted) return;
-            if (!mounted) return;
       final rol = usuario['rol'] as String;
       final Widget destino = rol == 'admin'
-          ? AdminScreen(usuario: usuario)
+          ? AdminMain(usuario: usuario)
           : ClienteScreen(usuario: usuario);
 
       Navigator.pushReplacement(
@@ -87,6 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
