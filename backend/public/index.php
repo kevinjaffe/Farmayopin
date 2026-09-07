@@ -57,6 +57,16 @@ if ($path === '/api/productos' && $method === 'POST') {
     exit;
 }
 
+if ($method === 'PUT' && preg_match('#^/api/productos/(\d+)$#', $path, $m)) {
+    (new ProductController($pdo))->update((int) $m[1]);
+    exit;
+}
+
+if ($method === 'DELETE' && preg_match('#^/api/productos/(\d+)$#', $path, $m)) {
+    (new ProductController($pdo))->destroy((int) $m[1]);
+    exit;
+}
+
 // Endpoint de prueba
 header('Content-Type: application/json');
 echo json_encode(['message' => 'Farmayopin API funcionando. Empiecen a programar!']);

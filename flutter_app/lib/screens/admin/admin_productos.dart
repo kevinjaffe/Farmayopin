@@ -4,6 +4,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
 import '../../core/services/session_manager.dart';
 import 'admin_crear_producto.dart';
+import 'admin_editar_producto.dart';
 
 class AdminProductos extends StatefulWidget {
   const AdminProductos({super.key, required this.usuario});
@@ -73,6 +74,16 @@ class _AdminProductosState extends State<AdminProductos> {
         _cargando = false;
       });
     }
+  }
+
+  Future<void> _abrirEditar(Map<String, dynamic> producto) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdminEditarProducto(producto: producto),
+      ),
+    );
+    _cargarProductos();
   }
 
   @override
@@ -148,7 +159,13 @@ class _AdminProductosState extends State<AdminProductos> {
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       itemCount: productos.length,
       separatorBuilder: (_, _) => const SizedBox(height: 16),
-      itemBuilder: (_, i) => _ProductoCard(producto: productos[i]),
+      itemBuilder: (_, i) {
+        final p = productos[i];
+        return _ProductoCard(
+          producto: p,
+          onEditar: () => _abrirEditar(p),
+        );
+      },
     );
   }
 
@@ -247,9 +264,10 @@ String _formatearPrecio(dynamic valor) {
 }
 
 class _ProductoCard extends StatelessWidget {
-  const _ProductoCard({required this.producto});
+  const _ProductoCard({required this.producto, this.onEditar});
 
   final Map<String, dynamic> producto;
+  final VoidCallback? onEditar;
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +334,7 @@ class _ProductoCard extends StatelessWidget {
             child: IconButton(
               padding: EdgeInsets.zero,
               icon: const Icon(Icons.edit, color: Color(0xFF64748B), size: 18),
-              onPressed: () {},
+              onPressed: onEditar,
             ),
           ),
         ],

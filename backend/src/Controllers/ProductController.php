@@ -77,6 +77,89 @@ class ProductController
         ], 201);
     }
 
+    public function update(int $id): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!is_array($data)) {
+            $this->json(['message' => 'Body inválido'], 400);
+            return;
+        }
+
+        $stmt = $this->pdo->prepare('SELECT id, foto FROM productos WHERE id = ?');
+        $stmt->execute([$id]);
+        $existente = $stmt->fetch();
+
+        if (!$existente) {
+            $this->json(['message' => 'Producto no encontrado'], 404);
+            return;
+        }
+
+        $nombre      = trim($data['nombre'] ?? '');
+        $descripcion = trim($data['descripcion'] ?? '');
+        $precio      = $data['precio'] ?? null;
+        $stock       = $data['stock'] ?? 0;
+
+        if ($nombre === '') {
+            $this->json(['message' => 'El nombre del producto es obligatorio'], 400);
+            return;
+        }
+
+        if (!is_numeric($precio) || (float) $precio < 0) {
+            $this->json(['message' => 'Precio inválido'], 400);
+            return;
+        }
+
+        $precio  = round((float) $precio, 2);
+        $foto    = $existente['foto'];
+        $nueva   = $this->guardarFoto($data['foto'] ?? null);
+
+        if ($nueva !== null) {
+            if ($foto) {
+                @unlink(__DIR__ . '/../Imagenes/' . basename($foto));
+            }
+            $foto = $nueva;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'UPDATE productos SET nombre = ?, precio = ?, detalle = ?, foto = ?, stock = ? WHERE id = ?'
+        );
+        $stmt->execute([$nombre, $precio, $descripcion, $foto, (int) $stock, $id]);
+
+        $this->json([
+            'message' => 'Producto actualizado',
+            'producto' => [
+                'id'          => $id,
+                'nombre'      => $nombre,
+                'precio'      => $precio,
+                'descripcion' => $descripcion,
+                'foto'        => $foto,
+                'stock'       => (int) $stock,
+            ],
+        ]);
+    }
+
+    public function destroy(int $id): void
+    {
+        $stmt = $this->pdo->prepare('SELECT foto FROM productos WHERE id = ?');
+        $stmt->execute([$id]);
+        $existente = $stmt->fetch();
+
+        if (!$existente) {
+            $this->json(['message' => 'Producto no encontrado'], 404);
+            return;
+        }
+
+        $stmt = $this->pdo->prepare('DELETE FROM productos WHERE id = ?');
+        $stmt->execute([$id]);
+
+        if ($existente['foto']) {
+            @unlink(__DIR__ . '/../Imagenes/' . basename($existente['foto']));
+        }
+
+        $this->json(['message' => 'Producto eliminado']);
+    }
+
     public function foto(string $nombre): void
     {
         $nombre = basename($nombre);
