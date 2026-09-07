@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/api_constants.dart';
 import 'admin_editar_producto.dart';
+import 'admin_historial.dart';
 
 class AdminProductoDetalle extends StatefulWidget {
   const AdminProductoDetalle({super.key, required this.producto});
@@ -56,9 +57,10 @@ class _AdminProductoDetalleState extends State<AdminProductoDetalle> {
   }
 
   void _verHistorial() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Historial de ventas del producto: próximamente'),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdminHistorial(producto: _producto),
       ),
     );
   }
@@ -167,7 +169,11 @@ class _AdminProductoDetalleState extends State<AdminProductoDetalle> {
           const SizedBox(width: 16),
           const Text(
             'Vista administrador',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: textDark),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: textDark,
+            ),
           ),
         ],
       ),
@@ -175,15 +181,6 @@ class _AdminProductoDetalleState extends State<AdminProductoDetalle> {
   }
 
   Widget _buildImagen() {
-    final Container base = Container(
-      width: double.infinity,
-      height: 200,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F1E9),
-        borderRadius: BorderRadius.circular(20),
-      ),
-    );
-
     if (_foto == null) {
       return Container(
         width: double.infinity,

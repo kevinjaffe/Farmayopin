@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 use App\Controllers\AuthController;
-use Dotenv\Dotenv;
 use App\Controllers\ProductController;
+use App\Controllers\VentaController;
+use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -64,6 +65,16 @@ if ($method === 'PUT' && preg_match('#^/api/productos/(\d+)$#', $path, $m)) {
 
 if ($method === 'DELETE' && preg_match('#^/api/productos/(\d+)$#', $path, $m)) {
     (new ProductController($pdo))->destroy((int) $m[1]);
+    exit;
+}
+
+if ($path === '/api/ventas' && $method === 'GET') {
+    (new VentaController($pdo))->index();
+    exit;
+}
+
+if ($method === 'GET' && preg_match('#^/api/ventas/producto/(\d+)$#', $path, $m)) {
+    (new VentaController($pdo))->index((int) $m[1]);
     exit;
 }
 
