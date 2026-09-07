@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../core/network/api_client.dart';
 import '../core/services/session_manager.dart';
-import 'home_screen.dart';
 import 'register_screen.dart';
+import 'admin/admin_screen.dart';
+import 'cliente/cliente_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -54,9 +55,15 @@ class _LoginScreenState extends State<LoginScreen> {
       _api.setToken(token);
 
       if (!mounted) return;
+            if (!mounted) return;
+      final rol = usuario['rol'] as String;
+      final Widget destino = rol == 'admin'
+          ? AdminScreen(usuario: usuario)
+          : ClienteScreen(usuario: usuario);
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen(usuario: usuario)),
+        MaterialPageRoute(builder: (_) => destino),
       );
     } catch (e) {
       if (mounted) _mostrarError(e.toString().replaceFirst('Exception: ', ''));
