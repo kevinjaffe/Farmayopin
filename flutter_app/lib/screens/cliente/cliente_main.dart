@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'catalogo_screen.dart';
+import 'perfil_screen.dart';
 
 class ClienteMain extends StatefulWidget {
   const ClienteMain({super.key, required this.usuario});
@@ -37,10 +38,10 @@ class _ClienteMainState extends State<ClienteMain> {
           key: const ValueKey<int>(2),
           child: const _TabPlaceholder(titulo: 'Historial'),
         );
-      case 3:
+        case 3:
         return KeyedSubtree(
           key: const ValueKey<int>(3),
-          child: const _TabPlaceholder(titulo: 'Perfil'),
+          child: PerfilScreen(usuario: widget.usuario),
         );
       default:
         return KeyedSubtree(
