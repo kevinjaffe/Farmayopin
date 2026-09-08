@@ -6,7 +6,7 @@ import '../core/network/api_client.dart';
 import '../core/services/session_manager.dart';
 import 'register_screen.dart';
 import 'admin/admin_main.dart';
-import 'cliente/cliente_screen.dart';
+import 'cliente/cliente_main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final rol = usuario['rol'] as String;
       final Widget destino = rol == 'admin'
           ? AdminMain(usuario: usuario)
-          : ClienteScreen(usuario: usuario);
+          : ClienteMain(usuario: usuario);
 
       Navigator.pushReplacement(
         context,
