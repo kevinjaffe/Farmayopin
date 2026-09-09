@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Controllers\AuthController;
 use App\Controllers\ProductController;
 use App\Controllers\VentaController;
+use App\Controllers\CarritoController;
 use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -75,6 +76,31 @@ if ($path === '/api/ventas' && $method === 'GET') {
 
 if ($method === 'GET' && preg_match('#^/api/ventas/producto/(\d+)$#', $path, $m)) {
     (new VentaController($pdo))->index((int) $m[1]);
+    exit;
+}
+
+if ($path === '/api/carrito' && $method === 'GET') {
+    (new CarritoController($pdo))->index();
+    exit;
+}
+
+if ($path === '/api/carrito' && $method === 'POST') {
+    (new CarritoController($pdo))->store();
+    exit;
+}
+
+if ($path === '/api/carrito/pagar' && $method === 'POST') {
+    (new CarritoController($pdo))->pagar();
+    exit;
+}
+
+if ($method === 'PUT' && preg_match('#^/api/carrito/(\d+)$#', $path, $m)) {
+    (new CarritoController($pdo))->update((int) $m[1]);
+    exit;
+}
+
+if ($method === 'DELETE' && preg_match('#^/api/carrito/(\d+)$#', $path, $m)) {
+    (new CarritoController($pdo))->destroy((int) $m[1]);
     exit;
 }
 

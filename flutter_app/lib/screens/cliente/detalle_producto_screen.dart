@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../core/constants/api_constants.dart';
+import '../../core/network/api_client.dart';
+import '../../core/services/session_manager.dart';
 import '../../core/utils/formato.dart';
 
 class DetalleProductoScreen extends StatefulWidget {
@@ -13,7 +17,9 @@ class DetalleProductoScreen extends StatefulWidget {
 }
 
 class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
+  final ApiClient _api = ApiClient();
   int _cantidad = 1;
+  bool _agregando = false;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
   static const Color textDark = Color(0xFF0F172A);
@@ -30,18 +36,42 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     return foto is String && foto.isNotEmpty ? foto : null;
   }
 
+  @override
+  void dispose() {
+    _api.dispose();
+    super.dispose();
+  }
+
   void _cambiarCantidad(int delta) {
     setState(() {
       _cantidad = (_cantidad + delta).clamp(1, _enStock ? _stock : 1);
     });
   }
 
-  void _agregarAlCarrito() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$_cantidad x $_nombre agregado al pedido'),
-      ),
-    );
+  Future<void> _agregarAlCarrito() async {
+    setState(() => _agregando = true);
+    try {
+      final token = await SessionManager.token();
+      if (token != null) _api.setToken(token);
+      await _api.post(
+        '/api/carrito',
+        body: jsonEncode({
+          'producto_id': widget.producto['id'],
+          'cantidad': _cantidad,
+        }),
+      );
+      if (!mounted) return;
+      setState(() => _agregando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$_cantidad x $_nombre agregado al carrito')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _agregando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   @override
@@ -241,9 +271,18 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
             child: SizedBox(
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: _agregarAlCarrito,
-                icon: const Icon(Icons.shopping_cart_outlined, size: 20),
-                label: const Text('Agregar al Carrito'),
+                onPressed: _agregando ? null : _agregarAlCarrito,
+                icon: _agregando
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.shopping_cart_outlined, size: 20),
+                label: Text(_agregando ? 'Agregando...' : 'Agregar al Carrito'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryPurple,
                   foregroundColor: Colors.white,

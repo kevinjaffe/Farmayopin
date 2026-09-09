@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'catalogo_screen.dart';
 import 'perfil_screen.dart';
+import 'carrito_screen.dart';
 
 class ClienteMain extends StatefulWidget {
   const ClienteMain({super.key, required this.usuario});
@@ -31,7 +32,7 @@ class _ClienteMainState extends State<ClienteMain> {
       case 1:
         return KeyedSubtree(
           key: const ValueKey<int>(1),
-          child: const _TabPlaceholder(titulo: 'Carrito'),
+          child: CarritoScreen(usuario: widget.usuario),
         );
       case 2:
         return KeyedSubtree(
