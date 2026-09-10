@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use PDO;
-
+use App\Traits\AutenticacionTrait;
 class VentaController
 {
+    use AutenticacionTrait;
     public function __construct(private PDO $pdo) {}
 
     public function index(?int $productoId = null): void
@@ -55,10 +56,57 @@ class VentaController
         $this->json(['ventas' => $ventas]);
     }
 
+        public function misCompras(): void
+    {
+        $usuarioId = $this->usuarioIdDesdeToken();
+        if ($usuarioId === null) {
+            $this->json(['message' => 'Token inválido o expirado'], 401);
+            return;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT c.id, c.fecha, c.total,
+                    ci.producto_id, ci.cantidad, ci.precio_unitario, ci.subtotal,
+                    p.nombre AS producto_nombre
+             FROM compras c
+             JOIN compra_items ci ON ci.compra_id = c.id
+             JOIN productos p ON p.id = ci.producto_id
+             WHERE c.usuario_id = ?
+             ORDER BY c.fecha DESC, c.id DESC, ci.id ASC'
+        );
+        $stmt->execute([$usuarioId]);
+
+        $pedidos = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $id = (int) $row['id'];
+            if (!isset($pedidos[$id])) {
+                $pedidos[$id] = [
+                    'id'                 => $id,
+                    'fecha'              => $row['fecha'],
+                    'total'              => (float) $row['total'],
+                    'cantidad_productos' => 0,
+                    'items'              => [],
+                ];
+            }
+            $pedidos[$id]['items'][] = [
+                'producto_id'     => (int) $row['producto_id'],
+                'nombre'          => $row['producto_nombre'],
+                'cantidad'        => (int) $row['cantidad'],
+                'precio_unitario' => (float) $row['precio_unitario'],
+                'subtotal'        => (float) $row['subtotal'],
+            ];
+            $pedidos[$id]['cantidad_productos'] = count($pedidos[$id]['items']);
+        }
+
+        $this->json(['pedidos' => array_values($pedidos)]);
+    }
+
     private function json(array $data, int $status = 200): void
     {
         http_response_code($status);
         header('Content-Type: application/json');
         echo json_encode($data);
     }
+
+    
 }

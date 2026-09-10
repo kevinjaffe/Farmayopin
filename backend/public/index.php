@@ -94,6 +94,11 @@ if ($path === '/api/carrito/pagar' && $method === 'POST') {
     exit;
 }
 
+if ($path === '/api/mis-compras' && $method === 'GET') {
+    (new VentaController($pdo))->misCompras();
+    exit;
+}
+
 if ($method === 'PUT' && preg_match('#^/api/carrito/(\d+)$#', $path, $m)) {
     (new CarritoController($pdo))->update((int) $m[1]);
     exit;
