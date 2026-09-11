@@ -6,6 +6,7 @@ use App\Controllers\AuthController;
 use App\Controllers\ProductController;
 use App\Controllers\VentaController;
 use App\Controllers\CarritoController;
+use App\Controllers\MediosPagoController;
 use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -96,6 +97,21 @@ if ($path === '/api/carrito/pagar' && $method === 'POST') {
 
 if ($path === '/api/mis-compras' && $method === 'GET') {
     (new VentaController($pdo))->misCompras();
+    exit;
+}
+
+if ($path === '/api/medios-pago' && $method === 'GET') {
+    (new MediosPagoController($pdo))->index();
+    exit;
+}
+
+if ($path === '/api/medios-pago' && $method === 'POST') {
+    (new MediosPagoController($pdo))->store();
+    exit;
+}
+
+if ($method === 'DELETE' && preg_match('#^/api/medios-pago/(\d+)$#', $path, $m)) {
+    (new MediosPagoController($pdo))->destroy((int) $m[1]);
     exit;
 }
 

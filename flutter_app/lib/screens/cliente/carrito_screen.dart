@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/network/api_client.dart';
 import '../../core/services/session_manager.dart';
 import '../../core/utils/formato.dart';
+import 'confirmar_pago_screen.dart';
 
 class CarritoScreen extends StatefulWidget {
   const CarritoScreen({super.key, required this.usuario});
@@ -101,35 +102,14 @@ class _CarritoScreenState extends State<CarritoScreen> {
     }
   }
 
-  Future<void> _pagar() async {
-    setState(() => _procesando = true);
-    try {
-      final token = await SessionManager.token();
-      if (token != null) _api.setToken(token);
-      final res = await _api.post('/api/carrito/pagar');
-      if (!mounted) return;
-      setState(() => _procesando = false);
-      await _cargarCarrito();
-      showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('¡Compra realizada!'),
-          content: Text('Total: \$${formatearMiles(res['total'])}'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cerrar'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _procesando = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
-    }
+    Future<void> _pagar() async {
+    if (_items.isEmpty) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ConfirmarPagoScreen(usuario: widget.usuario),
+      ),
+    );
+    if (mounted) await _cargarCarrito();
   }
 
   @override
