@@ -21,8 +21,37 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   final ApiClient _api = ApiClient();
   bool _cargando = false;
+  bool _revisandoSesion = true;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
+
+  @override
+  void initState() {
+    super.initState();
+    _restaurarSesion();
+  }
+
+  Future<void> _restaurarSesion() async {
+    final token = await SessionManager.token();
+    final usuario = await SessionManager.usuario();
+
+    if (!mounted) return;
+
+    if (token != null && usuario != null) {
+      final rol = usuario['rol'] as String;
+      final Widget destino = rol == 'admin'
+          ? AdminMain(usuario: usuario)
+          : ClienteMain(usuario: usuario);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => destino),
+      );
+      return;
+    }
+
+    setState(() => _revisandoSesion = false);
+  }
 
   @override
   void dispose() {
@@ -89,6 +118,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_revisandoSesion) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'farmayopin',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: primaryPurple,
+                ),
+              ),
+              SizedBox(height: 24),
+              CircularProgressIndicator(color: primaryPurple),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
