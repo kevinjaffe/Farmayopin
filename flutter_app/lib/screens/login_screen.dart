@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../core/network/api_client.dart';
+import '../core/services/local_db.dart';
 import '../core/services/session_manager.dart';
 import 'register_screen.dart';
 import 'admin/admin_main.dart';
@@ -43,6 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ? AdminMain(usuario: usuario)
           : ClienteMain(usuario: usuario);
 
+      _sincronizarVentasSiAdmin(usuario);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => destino),
@@ -51,6 +54,29 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _revisandoSesion = false);
+  }
+
+  Future<void> _sincronizarVentasSiAdmin(
+    Map<String, dynamic> usuario,
+  ) async {
+    if (usuario['rol'] != 'admin') return;
+
+    final api = ApiClient();
+    try {
+      final token = await SessionManager.token();
+      if (token != null) api.setToken(token);
+
+      final res = await api.get('/api/ventas');
+      final ventas = (res['ventas'] as List<dynamic>? ?? [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+
+      await LocalDb.sincronizarVentas(ventas);
+    } catch (_) {
+      // La sincronización es oportunista: si no hay internet, se ignora.
+    } finally {
+      api.dispose();
+    }
   }
 
   @override
@@ -82,6 +108,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await SessionManager.guardar(token, usuario);
       _api.setToken(token);
+
+      _sincronizarVentasSiAdmin(usuario);
 
       if (!mounted) return;
       final rol = usuario['rol'] as String;

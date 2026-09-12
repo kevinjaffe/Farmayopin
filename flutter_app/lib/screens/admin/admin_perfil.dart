@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/services/local_db.dart';
 import '../../core/services/session_manager.dart';
 import '../login_screen.dart';
 
@@ -18,6 +19,7 @@ class AdminPerfil extends StatelessWidget {
       usuario['rol'] == 'admin' ? 'ADMINISTRADOR' : 'CLIENTE';
 
   Future<void> _cerrarSesion(BuildContext context) async {
+    await LocalDb.borrarHistorialLocal();
     await SessionManager.cerrar();
     if (!context.mounted) return;
     Navigator.pushAndRemoveUntil(

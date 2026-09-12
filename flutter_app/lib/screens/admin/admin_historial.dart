@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
+import '../../core/services/local_db.dart';
 import '../../core/services/session_manager.dart';
 
 class AdminHistorial extends StatefulWidget {
@@ -22,6 +23,7 @@ class _AdminHistorialState extends State<AdminHistorial> {
 
   List<Map<String, dynamic>> _ventas = [];
   bool _cargando = true;
+  bool _modoOffline = false;
   String? _error;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
@@ -60,14 +62,51 @@ class _AdminHistorialState extends State<AdminHistorial> {
           .map((v) => Map<String, dynamic>.from(v as Map))
           .toList();
 
+      if (!_esDeProducto) {
+        await LocalDb.sincronizarVentas(ventas);
+      }
+
       if (!mounted) return;
       setState(() {
         _ventas = ventas;
+        _modoOffline = false;
         _cargando = false;
       });
+    } on ApiNetworkException {
+      if (!mounted) return;
+      final locales = await LocalDb.ventasLocales();
+      if (!mounted) return;
+
+      var filtradas = locales;
+      if (_esDeProducto) {
+        final productoId = widget.producto!['id'];
+        filtradas = locales
+            .where((v) =>
+                ((v['producto'] as Map<String, dynamic>?)?['id']) ==
+                productoId)
+            .toList();
+      }
+
+      if (filtradas.isEmpty) {
+        setState(() {
+          _ventas = [];
+          _modoOffline = false;
+          _error =
+              'No hay conexión a internet y no hay historial guardado en este dispositivo.';
+          _cargando = false;
+        });
+      } else {
+        setState(() {
+          _ventas = filtradas;
+          _modoOffline = true;
+          _error = null;
+          _cargando = false;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
+        _modoOffline = false;
         _error = e.toString().replaceFirst('Exception: ', '');
         _cargando = false;
       });
@@ -82,6 +121,29 @@ class _AdminHistorialState extends State<AdminHistorial> {
         child: Column(
           children: [
             _buildHeader(),
+            if (_modoOffline)
+              Container(
+                margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF4E5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.wifi_off, size: 16, color: Color(0xFFB45309)),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Sin conexión: mostrando el historial guardado en el dispositivo.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(child: _buildBody()),
           ],
         ),

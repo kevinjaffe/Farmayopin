@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/services/local_db.dart';
 import '../../../core/services/session_manager.dart';
 import '../../../core/utils/formato.dart';
 
@@ -23,6 +24,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
 
   List<Map<String, dynamic>> _pedidos = [];
   bool _cargando = true;
+  bool _modoOffline = false;
   String? _error;
   final Set<int> _expandidos = {};
 
@@ -55,6 +57,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
       if (!mounted) return;
       setState(() {
         _pedidos = items;
+        _modoOffline = false;
         if (items.isNotEmpty) {
           _expandidos
             ..clear()
@@ -62,9 +65,33 @@ class _HistorialScreenState extends State<HistorialScreen> {
         }
         _cargando = false;
       });
+    } on ApiNetworkException {
+      if (!mounted) return;
+      final locales = await LocalDb.pedidosLocales();
+      if (!mounted) return;
+      if (locales.isEmpty) {
+        setState(() {
+          _pedidos = [];
+          _modoOffline = false;
+          _error =
+              'No hay conexión a internet y todavía no tenés compras guardadas en este dispositivo.';
+          _cargando = false;
+        });
+      } else {
+        setState(() {
+          _pedidos = locales;
+          _modoOffline = true;
+          _error = null;
+          _expandidos
+            ..clear()
+            ..add(_pedidos.first['id'] as int);
+          _cargando = false;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
+        _modoOffline = false;
         _error = e.toString().replaceFirst('Exception: ', '');
         _cargando = false;
       });
@@ -134,6 +161,29 @@ class _HistorialScreenState extends State<HistorialScreen> {
                 ],
               ),
             ),
+            if (_modoOffline)
+              Container(
+                margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF4E5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.wifi_off, size: 16, color: Color(0xFFB45309)),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Sin conexión: mostrando tus compras guardadas en el dispositivo.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(child: _contenido()),
           ],
         ),

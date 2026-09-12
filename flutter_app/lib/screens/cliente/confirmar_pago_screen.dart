@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../core/network/api_client.dart';
+import '../../core/services/local_db.dart';
 import '../../core/services/session_manager.dart';
 import '../../core/utils/formato.dart';
 
@@ -93,6 +94,13 @@ class _ConfirmarPagoScreenState extends State<ConfirmarPagoScreen> {
       final token = await SessionManager.token();
       if (token != null) _api.setToken(token);
       final res = await _api.post('/api/carrito/pagar');
+      if (!mounted) return;
+      await LocalDb.guardarCompraLocal(
+        serverId: (res['compra_id'] as num?)?.toInt() ?? 0,
+        total: (res['total'] as num?)?.toDouble() ?? 0,
+        fecha: LocalDb.fechaLocalAhora(),
+        items: _items,
+      );
       if (!mounted) return;
       setState(() => _procesando = false);
       await showDialog<void>(
