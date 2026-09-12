@@ -69,8 +69,8 @@ class _AdminCrearProductoState extends State<AdminCrearProducto> {
     }
 
     final precio = double.tryParse(_precioController.text.trim());
-    if (precio == null || precio < 0) {
-      _mostrarAviso('Ingresa un precio válido');
+    if (precio == null || precio <= 0) {
+      _mostrarAviso('El precio debe ser mayor a 0');
       return;
     }
 

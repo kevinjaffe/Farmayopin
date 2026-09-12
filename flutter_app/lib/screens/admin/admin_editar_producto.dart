@@ -96,8 +96,8 @@ class _AdminEditarProductoState extends State<AdminEditarProducto> {
       _mostrarAviso('Ingresa el nombre del producto');
       return;
     }
-    if (precio == null || precio < 0) {
-      _mostrarAviso('Ingresa un precio válido');
+    if (precio == null || precio <= 0) {
+      _mostrarAviso('El precio debe ser mayor a 0');
       return;
     }
 

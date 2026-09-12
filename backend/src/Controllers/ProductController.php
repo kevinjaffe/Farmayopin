@@ -51,8 +51,8 @@ class ProductController
             return;
         }
 
-        if (!is_numeric($precio) || (float) $precio < 0) {
-            $this->json(['message' => 'Precio inválido'], 400);
+        if (!is_numeric($precio) || (float) $precio <= 0) {
+            $this->json(['message' => 'El precio debe ser mayor a 0'], 400);
             return;
         }
 
@@ -105,8 +105,8 @@ class ProductController
             return;
         }
 
-        if (!is_numeric($precio) || (float) $precio < 0) {
-            $this->json(['message' => 'Precio inválido'], 400);
+        if (!is_numeric($precio) || (float) $precio <= 0) {
+            $this->json(['message' => 'El precio debe ser mayor a 0'], 400);
             return;
         }
 
