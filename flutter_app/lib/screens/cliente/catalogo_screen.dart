@@ -7,9 +7,10 @@ import '../../core/utils/formato.dart';
 import 'detalle_producto_screen.dart';
 
 class CatalogoScreen extends StatefulWidget {
-  const CatalogoScreen({super.key, required this.usuario});
+  const CatalogoScreen({super.key, required this.usuario, this.onCarritoCambio});
 
   final Map<String, dynamic> usuario;
+  final VoidCallback? onCarritoCambio;
 
   @override
   State<CatalogoScreen> createState() => _CatalogoScreenState();
@@ -77,7 +78,10 @@ class _CatalogoScreenState extends State<CatalogoScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => DetalleProductoScreen(producto: producto),
+        builder: (_) => DetalleProductoScreen(
+          producto: producto,
+          onCarritoCambio: widget.onCarritoCambio,
+        ),
       ),
     );
   }

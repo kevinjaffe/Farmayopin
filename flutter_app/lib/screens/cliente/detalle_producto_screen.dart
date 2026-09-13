@@ -8,9 +8,10 @@ import '../../core/services/session_manager.dart';
 import '../../core/utils/formato.dart';
 
 class DetalleProductoScreen extends StatefulWidget {
-  const DetalleProductoScreen({super.key, required this.producto});
+  const DetalleProductoScreen({super.key, required this.producto, this.onCarritoCambio});
 
   final Map<String, dynamic> producto;
+  final VoidCallback? onCarritoCambio;
 
   @override
   State<DetalleProductoScreen> createState() => _DetalleProductoScreenState();
@@ -75,6 +76,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('$_cantidad x $_nombre agregado al carrito')),
       );
+      widget.onCarritoCambio?.call();
     } catch (e) {
       if (!mounted) return;
       setState(() => _agregando = false);
