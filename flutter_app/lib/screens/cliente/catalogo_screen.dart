@@ -171,30 +171,13 @@ class _CatalogoScreenState extends State<CatalogoScreen> {
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-      child: Row(
-        children: [
-          const Expanded(
-            child: Text(
-              'Medicamentos destacados',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: textDark,
-              ),
-            ),
-          ),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: const Icon(Icons.notifications_none,
-                color: Color(0xFF0F172A), size: 20),
-          ),
-        ],
+      child: const Text(
+        'Medicamentos destacados',
+        style: TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+          color: textDark,
+        ),
       ),
     );
   }
@@ -241,6 +224,9 @@ class _ProductoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stock = (producto['stock'] ?? 0) as int;
+    final enStock = stock > 0;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -288,6 +274,17 @@ class _ProductoCard extends StatelessWidget {
                       color: Color(0xFF0F172A),
                     ),
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    enStock ? '$stock en stock' : 'Sin stock',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: enStock
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFFE53935),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -301,7 +298,7 @@ class _ProductoCard extends StatelessWidget {
     final foto = producto['foto'];
     if (foto is String && foto.isNotEmpty) {
       return Container(
-        height: 120,
+        height: 100,
         width: double.infinity,
         color: const Color(0xFFF1F5F9),
         padding: const EdgeInsets.all(8),
@@ -315,7 +312,7 @@ class _ProductoCard extends StatelessWidget {
       );
     }
     return Container(
-      height: 120,
+      height: 100,
       width: double.infinity,
       color: const Color(0xFFF1F5F9),
       child: const Center(

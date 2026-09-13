@@ -6,6 +6,7 @@ import '../../core/network/api_client.dart';
 import '../../core/services/local_db.dart';
 import '../../core/services/session_manager.dart';
 import '../../core/utils/formato.dart';
+import 'agregar_tarjeta_dialog.dart';
 
 class ConfirmarPagoScreen extends StatefulWidget {
   const ConfirmarPagoScreen({super.key, required this.usuario});
@@ -129,7 +130,7 @@ class _ConfirmarPagoScreenState extends State<ConfirmarPagoScreen> {
   Future<void> _agregarTarjeta() async {
     final datos = await showDialog<Map<String, String>>(
       context: context,
-      builder: (_) => const _AgregarTarjetaDialog(),
+      builder: (_) => const AgregarTarjetaDialog(),
     );
     if (datos == null) return;
 
@@ -142,6 +143,49 @@ class _ConfirmarPagoScreenState extends State<ConfirmarPagoScreen> {
       setState(() {
         _medios.insert(0, nuevo);
         _medioSeleccionado = nuevo['id'] as int;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
+  }
+
+  Future<void> _quitarMedio(Map<String, dynamic> medio) async {
+    final id = medio['id'] as int;
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Quitar método de pago'),
+        content: const Text('¿Querés eliminar este método de pago?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+            child: const Text('Quitar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true) return;
+
+    try {
+      final token = await SessionManager.token();
+      if (token != null) _api.setToken(token);
+      await _api.delete('/api/medios-pago/$id');
+      if (!mounted) return;
+      setState(() {
+        _medios.removeWhere((m) => m['id'] == id);
+        if (_medioSeleccionado == id) {
+          _medioSeleccionado =
+              _medios.isNotEmpty ? _medios.first['id'] as int : null;
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -374,6 +418,12 @@ class _ConfirmarPagoScreenState extends State<ConfirmarPagoScreen> {
                 ],
               ),
             ),
+            IconButton(
+              onPressed: () => _quitarMedio(medio),
+              tooltip: 'Quitar método de pago',
+              icon: const Icon(Icons.delete_outline,
+                  size: 18, color: Color(0xFF94A3B8)),
+            ),
             Container(
               width: 18,
               height: 18,
@@ -425,108 +475,6 @@ class _ConfirmarPagoScreenState extends State<ConfirmarPagoScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _AgregarTarjetaDialog extends StatefulWidget {
-  const _AgregarTarjetaDialog();
-
-  @override
-  State<_AgregarTarjetaDialog> createState() => _AgregarTarjetaDialogState();
-}
-
-class _AgregarTarjetaDialogState extends State<_AgregarTarjetaDialog> {
-  static const List<String> _marcas = ['Visa', 'Mastercard', 'Otra'];
-
-  final _formKey = GlobalKey<FormState>();
-  final _numeroCtrl = TextEditingController();
-  final _titularCtrl = TextEditingController();
-  final _vencCtrl = TextEditingController();
-
-  String _tipo = 'credito';
-  String _marca = 'Visa';
-
-  @override
-  void dispose() {
-    _numeroCtrl.dispose();
-    _titularCtrl.dispose();
-    _vencCtrl.dispose();
-    super.dispose();
-  }
-
-  void _guardar() {
-    if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop({
-      'tipo': _tipo,
-      'marca': _marca,
-      'numero': _numeroCtrl.text.replaceAll(' ', ''),
-      'titular': _titularCtrl.text,
-      'vencimiento': _vencCtrl.text,
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Agregar método de pago'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'credito', label: Text('Crédito')),
-                  ButtonSegment(value: 'debito', label: Text('Débito')),
-                ],
-                selected: {_tipo},
-                onSelectionChanged: (s) => setState(() => _tipo = s.first),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _marca,
-                decoration: const InputDecoration(labelText: 'Marca', border: OutlineInputBorder()),
-                items: _marcas.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
-                onChanged: (v) => setState(() => _marca = v ?? 'Visa'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _numeroCtrl,
-                keyboardType: TextInputType.number,
-                maxLength: 19,
-                decoration: const InputDecoration(labelText: 'Número de tarjeta', border: OutlineInputBorder()),
-                validator: (v) =>
-                    (v == null || v.replaceAll(' ', '').length < 13) ? 'Ingresá un número válido' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _titularCtrl,
-                decoration: const InputDecoration(labelText: 'Titular', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresá el titular' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _vencCtrl,
-                decoration: const InputDecoration(labelText: 'Vencimiento (MM/AA)', border: OutlineInputBorder()),
-                validator: (v) =>
-                    (v == null || !RegExp(r'^(0[1-9]|1[0-2])\/\d{2}$').hasMatch(v.trim()))
-                        ? 'Formato MM/AA'
-                        : null,
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-        FilledButton(
-          onPressed: _guardar,
-          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF6B21A8)),
-          child: const Text('Guardar'),
-        ),
-      ],
     );
   }
 }

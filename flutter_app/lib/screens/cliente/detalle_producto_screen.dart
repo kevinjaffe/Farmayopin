@@ -18,7 +18,7 @@ class DetalleProductoScreen extends StatefulWidget {
 
 class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
   final ApiClient _api = ApiClient();
-  int _cantidad = 1;
+  int _cantidad = 0;
   bool _agregando = false;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
@@ -37,6 +37,12 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _cantidad = _enStock ? 1 : 0;
+  }
+
+  @override
   void dispose() {
     _api.dispose();
     super.dispose();
@@ -44,7 +50,11 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
 
   void _cambiarCantidad(int delta) {
     setState(() {
-      _cantidad = (_cantidad + delta).clamp(1, _enStock ? _stock : 1);
+      if (!_enStock) {
+        _cantidad = 0;
+        return;
+      }
+      _cantidad = (_cantidad + delta).clamp(1, _stock);
     });
   }
 
@@ -226,10 +236,15 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
   }
 
   Widget _buildStockBadge() {
+    final Color fondo =
+        _enStock ? const Color(0xFFF3E8FF) : const Color(0xFFFFE4E6);
+    final Color frente =
+        _enStock ? const Color(0xFF7E22CE) : const Color(0xFFE53935);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3E8FF),
+        color: fondo,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -238,15 +253,15 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
           Icon(
             _enStock ? Icons.check : Icons.close,
             size: 12,
-            color: const Color(0xFF7E22CE),
+            color: frente,
           ),
           const SizedBox(width: 4),
           Text(
             _enStock ? 'EN STOCK' : 'SIN STOCK',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF7E22CE),
+              color: frente,
               letterSpacing: 0.5,
             ),
           ),
@@ -271,7 +286,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
             child: SizedBox(
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: _agregando ? null : _agregarAlCarrito,
+                onPressed: (_agregando || !_enStock) ? null : _agregarAlCarrito,
                 icon: _agregando
                     ? const SizedBox(
                         width: 18,
@@ -282,7 +297,11 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
                         ),
                       )
                     : const Icon(Icons.shopping_cart_outlined, size: 20),
-                label: Text(_agregando ? 'Agregando...' : 'Agregar al Carrito'),
+                label: Text(
+                  !_enStock
+                      ? 'Sin Stock'
+                      : (_agregando ? 'Agregando...' : 'Agregar al Carrito'),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryPurple,
                   foregroundColor: Colors.white,
