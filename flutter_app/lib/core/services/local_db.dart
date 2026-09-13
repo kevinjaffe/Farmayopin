@@ -123,6 +123,30 @@ class LocalDb {
     return compraId;
   }
 
+  static Future<void> sincronizarCompras(
+    List<Map<String, dynamic>> pedidos,
+  ) async {
+    final db = await LocalDb.database;
+
+    await db.delete('compra_items_local');
+    await db.delete('compras_local');
+
+    for (final pedido in pedidos) {
+      final items = ((pedido['items'] as List?) ?? []).map((e) {
+        final m = Map<String, dynamic>.from(e as Map);
+        m['precio'] = m['precio_unitario'];
+        return m;
+      }).toList();
+
+      await LocalDb.guardarCompraLocal(
+        serverId: (pedido['id'] as num?)?.toInt() ?? 0,
+        total: (pedido['total'] as num?)?.toDouble() ?? 0,
+        fecha: (pedido['fecha'] as String?) ?? LocalDb.fechaLocalAhora(),
+        items: items,
+      );
+    }
+  }
+
   static Future<List<Map<String, dynamic>>> pedidosLocales() async {
     final db = await LocalDb.database;
 

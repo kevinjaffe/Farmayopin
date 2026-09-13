@@ -22,7 +22,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
   List<Map<String, dynamic>> _items = [];
   double _total = 0;
   bool _cargando = true;
-  bool _procesando = false;
+  final bool _procesando = false;
   String? _error;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);

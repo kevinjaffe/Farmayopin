@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
           : ClienteMain(usuario: usuario);
 
       _sincronizarVentasSiAdmin(usuario);
+      _sincronizarComprasSiCliente(usuario);
 
       Navigator.pushReplacement(
         context,
@@ -74,6 +75,29 @@ class _LoginScreenState extends State<LoginScreen> {
       await LocalDb.sincronizarVentas(ventas);
     } catch (_) {
       // La sincronización es oportunista: si no hay internet, se ignora.
+    } finally {
+      api.dispose();
+    }
+  }
+
+  Future<void> _sincronizarComprasSiCliente(
+    Map<String, dynamic> usuario,
+  ) async {
+    if (usuario['rol'] != 'cliente') return;
+
+    final api = ApiClient();
+    try {
+      final token = await SessionManager.token();
+      if (token != null) api.setToken(token);
+
+      final res = await api.get('/api/mis-compras');
+      final pedidos = (res['pedidos'] as List<dynamic>? ?? [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+
+      await LocalDb.sincronizarCompras(pedidos);
+    } catch (_) {
+      // Oportunista: si no hay internet, se ignora.
     } finally {
       api.dispose();
     }
@@ -110,6 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _api.setToken(token);
 
       _sincronizarVentasSiAdmin(usuario);
+      _sincronizarComprasSiCliente(usuario);
 
       if (!mounted) return;
       final rol = usuario['rol'] as String;

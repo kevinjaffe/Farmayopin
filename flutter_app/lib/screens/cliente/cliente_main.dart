@@ -149,35 +149,3 @@ class _ClienteMainState extends State<ClienteMain> {
   }
 }
 
-class _TabPlaceholder extends StatelessWidget {
-  const _TabPlaceholder({required this.titulo});
-
-  final String titulo;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.construction,
-                  size: 48, color: Color(0xFF94A3B8)),
-              const SizedBox(height: 12),
-              Text(
-                '$titulo — próximamente',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

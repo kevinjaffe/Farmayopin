@@ -15,11 +15,6 @@ class HistorialScreen extends StatefulWidget {
 }
 
 class _HistorialScreenState extends State<HistorialScreen> {
-  static const _naranjaMorado = Color(0xFF8B5CF6);
-  static const _moradoOscuro = Color(0xFF7E22CE);
-  static const _texto = Color(0xFF0F172A);
-  static const _gris = Color(0xFF94A3B8);
-
   final ApiClient _api = ApiClient();
 
   List<Map<String, dynamic>> _pedidos = [];
@@ -54,6 +49,11 @@ class _HistorialScreenState extends State<HistorialScreen> {
       final items = (datos['pedidos'] as List<dynamic>? ?? [])
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
+      try {
+        await LocalDb.sincronizarCompras(items);
+      } catch (_) {
+        // Si falla el guardado local, la vista online igual funciona.
+      }
       if (!mounted) return;
       setState(() {
         _pedidos = items;
