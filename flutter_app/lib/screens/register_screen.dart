@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../core/network/api_client.dart';
@@ -19,7 +18,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _acceptTerms = true;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
 
@@ -79,10 +77,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _registrar() async {
-    if (!_acceptTerms) {
-      _mostrarError('Debes aceptar los términos y condiciones');
-      return;
-    }
     if (_passwordController.text != _confirmPasswordController.text) {
       _mostrarError('Las contraseñas no coinciden');
       return;
@@ -239,61 +233,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Checkbox(
-                      value: _acceptTerms,
-                      activeColor: primaryPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _acceptTerms = value ?? false;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(fontSize: 13, color: Colors.black54, height: 1.4),
-                        children: [
-                          const TextSpan(text: 'Acepto los '),
-                          TextSpan(
-                            text: 'Términos de Servicio',
-                            style: const TextStyle(
-                              color: primaryPurple,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {},
-                          ),
-                          const TextSpan(text: ' y la '),
-                          TextSpan(
-                            text: 'Política de Privacidad',
-                            style: const TextStyle(
-                              color: primaryPurple,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {},
-                          ),
-                          const TextSpan(text: '.'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
               ),
 
               const SizedBox(height: 24),

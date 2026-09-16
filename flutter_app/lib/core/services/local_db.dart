@@ -10,7 +10,7 @@ class LocalDb {
   static Future<Database> get database async {
     _db ??= await openDatabase(
       join(await getDatabasesPath(), 'farmayopin.db'),
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -22,7 +22,8 @@ class LocalDb {
       CREATE TABLE sesion (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         token TEXT NOT NULL,
-        usuario TEXT NOT NULL
+        usuario TEXT NOT NULL,
+        recordar INTEGER NOT NULL DEFAULT 1
       )
     ''');
     await db.execute('''
@@ -65,7 +66,8 @@ class LocalDb {
         CREATE TABLE IF NOT EXISTS sesion (
           id INTEGER PRIMARY KEY CHECK (id = 1),
           token TEXT NOT NULL,
-          usuario TEXT NOT NULL
+          usuario TEXT NOT NULL,
+          recordar INTEGER NOT NULL DEFAULT 1
         )
       ''');
     }
@@ -82,6 +84,11 @@ class LocalDb {
           sincronizado_en TEXT NOT NULL
         )
       ''');
+    }
+    if (oldVersion < 4) {
+      await db.execute(
+        'ALTER TABLE sesion ADD COLUMN recordar INTEGER NOT NULL DEFAULT 1',
+      );
     }
   }
 

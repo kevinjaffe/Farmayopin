@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final ApiClient _api = ApiClient();
   bool _cargando = false;
   bool _revisandoSesion = true;
+  bool _mantenerSesion = true;
 
   static const Color primaryPurple = Color(0xFF6A0DAD);
 
@@ -35,10 +36,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _restaurarSesion() async {
     final token = await SessionManager.token();
     final usuario = await SessionManager.usuario();
+    final mantener = await SessionManager.mantenerSesion();
 
     if (!mounted) return;
 
     if (token != null && usuario != null) {
+      if (!mantener) {
+        await LocalDb.borrarHistorialLocal();
+        await SessionManager.cerrar();
+        if (!mounted) return;
+        setState(() => _revisandoSesion = false);
+        return;
+      }
+
       final rol = usuario['rol'] as String;
       final Widget destino = rol == 'admin'
           ? AdminMain(usuario: usuario)
@@ -130,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final token = data['token'] as String;
       final usuario = data['usuario'] as Map<String, dynamic>;
 
-      await SessionManager.guardar(token, usuario);
+      await SessionManager.guardar(token, usuario, recordar: _mantenerSesion);
       _api.setToken(token);
 
       _sincronizarVentasSiAdmin(usuario);
@@ -304,18 +314,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      '¿Olvidaste tu contraseña?',
-                      style: TextStyle(
-                        color: primaryPurple,
-                        fontWeight: FontWeight.w500,
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _mantenerSesion,
+                        activeColor: primaryPurple,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _mantenerSesion = value ?? false;
+                          });
+                        },
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Mantenerme en sesión',
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 24),

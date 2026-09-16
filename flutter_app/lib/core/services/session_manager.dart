@@ -3,11 +3,20 @@ import 'package:sqflite/sqflite.dart';
 import 'local_db.dart';
 
 class SessionManager {
-  static Future<void> guardar(String token, Map<String, dynamic> usuario) async {
+  static Future<void> guardar(
+    String token,
+    Map<String, dynamic> usuario, {
+    bool recordar = true,
+  }) async {
     final db = await LocalDb.database;
     await db.insert(
       'sesion',
-      {'id': 1, 'token': token, 'usuario': jsonEncode(usuario)},
+      {
+        'id': 1,
+        'token': token,
+        'usuario': jsonEncode(usuario),
+        'recordar': recordar ? 1 : 0,
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -24,6 +33,14 @@ class SessionManager {
     final rows = await db.query('sesion', where: 'id = 1', limit: 1);
     if (rows.isEmpty) return null;
     return jsonDecode(rows.first['usuario'] as String) as Map<String, dynamic>;
+  }
+
+  static Future<bool> mantenerSesion() async {
+    final db = await LocalDb.database;
+    final rows = await db.query('sesion', where: 'id = 1', limit: 1);
+    if (rows.isEmpty) return false;
+    final recordar = rows.first['recordar'];
+    return recordar is int ? recordar == 1 : true;
   }
 
   static Future<void> cerrar() async {
