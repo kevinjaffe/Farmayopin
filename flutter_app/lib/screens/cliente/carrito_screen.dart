@@ -8,9 +8,10 @@ import '../../core/utils/formato.dart';
 import 'confirmar_pago_screen.dart';
 
 class CarritoScreen extends StatefulWidget {
-  const CarritoScreen({super.key, required this.usuario});
+  const CarritoScreen({super.key, required this.usuario, this.onCarritoCambio});
 
   final Map<String, dynamic> usuario;
+  final VoidCallback? onCarritoCambio;
 
   @override
   State<CarritoScreen> createState() => _CarritoScreenState();
@@ -79,7 +80,9 @@ class _CarritoScreenState extends State<CarritoScreen> {
         '/api/carrito/${item['id']}',
         body: jsonEncode({'cantidad': nueva}),
       );
+      
       await _cargarCarrito();
+      widget.onCarritoCambio?.call();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,6 +97,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
       if (token != null) _api.setToken(token);
       await _api.delete('/api/carrito/${item['id']}');
       await _cargarCarrito();
+      widget.onCarritoCambio?.call();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -110,6 +114,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
       ),
     );
     if (mounted) await _cargarCarrito();
+    widget.onCarritoCambio?.call();
   }
 
   @override

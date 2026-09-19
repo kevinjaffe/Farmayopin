@@ -67,10 +67,13 @@ class _ClienteMainState extends State<ClienteMain> {
 
   Widget _paginaConKey(int indice) {
     switch (indice) {
-      case 1:
+       case 1:
         return KeyedSubtree(
           key: const ValueKey<int>(1),
-          child: CarritoScreen(usuario: widget.usuario),
+          child: CarritoScreen(
+            usuario: widget.usuario,
+            onCarritoCambio: _cargarCantidadCarrito,
+          ),
         );
       case 2:
         return KeyedSubtree(
