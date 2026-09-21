@@ -85,17 +85,3 @@ flutter build apk --dart-define=API_BASE_URL=http://<IP_del_servidor>:8080
 flutter build web --dart-define=API_BASE_URL=http://<IP_del_servidor>:8080
 ```
 
-## API endpoints principales
-
-| Metodo | Ruta | Acceso |
-|--------|------|--------|
-| POST | /api/auth/register | publico |
-| POST | /api/auth/login | publico |
-| GET | /api/products | publico |
-| POST | /api/products | admin |
-| PUT | /api/products/{id} | admin |
-| GET | /api/cart | cliente |
-| POST | /api/cart | cliente |
-| POST | /api/cart/pay | cliente |
-| GET | /api/purchases | publico |
-| GET | /api/purchases/product/{id} | admin |
